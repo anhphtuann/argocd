@@ -22,6 +22,76 @@ data:
     - name: Content-Type
       value: application/json
 
+  template.app-created: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "Application {{ $name }} has been created.",
+            "message_thread_id": 2
+          }
+  template.app-deleted: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "Application {{ $name }} has been deleted.",
+            "message_thread_id": 2
+          }
+  template.app-deployed: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "Application {{ $name }} is now running new version of deployments manifests.",
+            "message_thread_id": 2
+          }
+  template.app-health-degraded: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "Application {{ $name }} has degraded. Application details: {{ $argocdUrl }}/applications/{{ $name }}.",
+            "message_thread_id": 2
+          }
+  template.app-sync-failed: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "The sync operation of application {{ $name }} has failed at {{ $finishedAt }} with the following error: {{ $message }}. Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.",
+            "message_thread_id": 2
+          }
+  template.app-sync-running: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "The sync operation of application {{ $name }} has started at {{ $startedAt }}. Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.",
+            "message_thread_id": 2
+          }
+  template.app-sync-status-unknown: |
+    webhook:
+      telegram_webhook:
+        method: POST
+        body: |
+          {
+            "chat_id": -1002251325616,
+            "text": "Application {{ $name }} sync is 'Unknown'. Application details: {{ $argocdUrl }}/applications/{{ $name }}.",
+            "message_thread_id": 2
+          }
   template.app-sync-succeeded: |
     webhook:
       telegram_webhook:
@@ -29,10 +99,49 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "Application {{ $name }} has been successfully synced at {{ $finishedAt }}. Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true",
+            "text": "Application {{ $name }} has been successfully synced at {{ $finishedAt }}.\nSync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true",
             "message_thread_id": 2
           }
 
+  trigger.on-created: |
+    - description: Application is created.
+      oncePer: app.metadata.name
+      send:
+      - app-created
+      when: "true"
+  trigger.on-deleted: |
+    - description: Application is deleted.
+      oncePer: app.metadata.name
+      send:
+      - app-deleted
+      when: app.metadata.deletionTimestamp != nil
+  trigger.on-deployed: |
+    - description: Application is synced and healthy. Triggered once per commit.
+      oncePer: app.status.operationState.syncResult.revision
+      send:
+      - app-deployed
+      when: app.status.operationState.phase in ['Succeeded'] and app.status.health.status
+        == 'Healthy'
+  trigger.on-health-degraded: |
+    - description: Application has degraded
+      send:
+      - app-health-degraded
+      when: app.status.health.status == 'Degraded'
+  trigger.on-sync-failed: |
+    - description: Application syncing has failed
+      send:
+      - app-sync-failed
+      when: app.status.operationState.phase in ['Error', 'Failed']
+  trigger.on-sync-running: |
+    - description: Application is being synced
+      send:
+      - app-sync-running
+      when: app.status.operationState.phase in ['Running']
+  trigger.on-sync-status-unknown: |
+    - description: Application status is 'Unknown'
+      send:
+      - app-sync-status-unknown
+      when: app.status.sync.status == 'Unknown'
   trigger.on-sync-succeeded: |
     - description: Application syncing has succeeded
       send:
