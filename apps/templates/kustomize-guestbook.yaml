@@ -4,8 +4,7 @@ metadata:
   name: kustomize-guestbook
   namespace: argocd
   annotations:
-    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: ""
-    notifications.argoproj.io/subscribe.on-sync-failed.telegram: ""
+    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: -1002251325616|2
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
