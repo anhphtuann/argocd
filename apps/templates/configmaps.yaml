@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+data:
+  service.telegram: |
+    token: 7674095993:AAFCiYoqNws8cx0MbGvBIHTDBJnIov18zwA

@@ -3,9 +3,13 @@ kind: Application
 metadata:
   name: helm-guestbook
   namespace: argocd
+  annotations:
+    notifications.argoproj.io/subscribe.on-sync-succeeded.telegram: -1002251325616|2
   finalizers:
   - resources-finalizer.argocd.argoproj.io
 spec:
+  syncPolicy:
+    automated: {}
   destination:
     namespace: helm-guestbook
     server: {{ .Values.spec.destination.server }}
