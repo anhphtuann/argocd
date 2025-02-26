@@ -59,7 +59,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "Application {{ $name }} has degraded.\nApplication details: {{ $argocdUrl }}/applications/{{ $name }}.\nHealth Status: {{ $$healthStatus }}.\nRepository: {{ $repoURL }}.",
+            "text": "Application {{ $name }} has degraded.\nApplication details: {{ $argocdUrl }}/applications/{{ $name }}.\nHealth Status: {{ $healthStatus }}.\nRepository: {{ $repoURL }}.",
             "message_thread_id": 2
           }
   template.app-sync-failed: |
