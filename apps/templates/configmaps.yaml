@@ -4,6 +4,14 @@ metadata:
   name: argocd-notifications-cm
 data:
   {{- $name := "{{ .app.metadata.name }}" }}
+  {{- $syncStatus := "{{ .app.status.sync.status }}" }}
+  {{- $repoURL := "{{ .app.spec.source.repoURL }}" }}
+  {{- $startedAt := "{{ .app.status.operationState.startedAt }}" }}
+  {{- $finishedAt := "{{ .app.status.operationState.finishedAt }}" }}
+  {{- $message := "{{ .app.status.operationState.message }}" }}
+  {{- $revision := "{{ .app.status.sync.revision }}" }}
+  {{- $argocdUrl := "{{ .context.argocdUrl }}" }}
+  {{- $healthStatus := "{{ .app.status.health.status }}" }}
   service.telegram: |
     token: $telegram-token
   template.app-created: |
@@ -26,25 +34,26 @@ data:
     slack:
       attachments: |
         [{
-          "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
+          "title": "{{ $name }}",
+          "title_link":"{{ $argocdUrl }}/applications/{{ $name }}",
           "color": "#18be52",
           "fields": [
           {
             "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
+            "value": "{{ $syncStatus }}",
             "short": true
           },
           {
             "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
+            "value": "{{ $repoURL }}",
             "short": true
           },
           {
             "title": "Revision",
-            "value": "{{.app.status.sync.revision}}",
+            "value": "{{ $revision }}",
             "short": true
           }
+          {{if and .app .app.status .app.status.conditions}}
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -54,6 +63,7 @@ data:
             "short": true
           }
           {{end}}
+          {{end}}
           ]
         }]
       groupingKey: ""
@@ -62,16 +72,17 @@ data:
       facts: |
         [{
           "name": "Sync Status",
-          "value": "{{.app.status.sync.status}}"
+          "value": "{{ $syncStatus }}"
         },
         {
           "name": "Repository",
-          "value": "{{.app.spec.source.repoURL}}"
+          "value": "{{ $repoURL }}"
         },
         {
           "name": "Revision",
-          "value": "{{.app.status.sync.revision}}"
+          "value": "{{ $revision }}"
         }
+        {{if and .app .app.status .app.status.conditions}}
         {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -80,6 +91,7 @@ data:
             "value": "{{$c.message}}"
           }
         {{end}}
+        {{end}}
         ]
       potentialAction: |-
         [{
@@ -87,15 +99,17 @@ data:
           "name":"Operation Application",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}"
+            "uri":"{{ $argocdUrl }}/applications/{{ $name }}"
           }]
         },
         {
           "@type":"OpenUri",
           "name":"Open Repository",
           "targets":[{
-            "os":"default",
-            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+            "os":"default"
+            {{if and .repo .repo.RepoURLToHTTPS}}
+            ,"uri":"{{$repoURL | call .repo.RepoURLToHTTPS}}"
+            {{end}}
           }]
         }]
       themeColor: '#000080'
@@ -105,24 +119,25 @@ data:
       subject: Application {{ $name }} has degraded.
     message: |
       {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{ $name }} has degraded.
-      Application details: {{.context.argocdUrl}}/applications/{{ $name }}.
+      Application details: {{ $argocdUrl }}/applications/{{ $name }}.
     slack:
       attachments: |
         [{
-          "title": "{{ .app.metadata.name}}",
-          "title_link": "{{.context.argocdUrl}}/applications/{{ $name }}",
+          "title": "{{ $name }}",
+          "title_link": "{{ $argocdUrl }}/applications/{{ $name }}",
           "color": "#f4c030",
           "fields": [
           {
             "title": "Health Status",
-            "value": "{{.app.status.health.status}}",
+            "value": "{{ $healthStatus }}",
             "short": true
           },
           {
             "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
+            "value": "{{ $repoURL }}",
             "short": true
           }
+          {{if and .app .app.status .app.status.conditions}}
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -131,6 +146,7 @@ data:
             "value": "{{$c.message}}",
             "short": true
           }
+          {{end}}
           {{end}}
           ]
         }]
@@ -140,12 +156,13 @@ data:
       facts: |
         [{
           "name": "Health Status",
-          "value": "{{.app.status.health.status}}"
+          "value": "{{ $healthStatus }}"
         },
         {
           "name": "Repository",
-          "value": "{{.app.spec.source.repoURL}}"
+          "value": "{{ $repoURL }}"
         }
+        {{if and .app .app.status .app.status.conditions}}
         {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -153,6 +170,7 @@ data:
             "name": "{{$c.type}}",
             "value": "{{$c.message}}"
           }
+        {{end}}
         {{end}}
         ]
       potentialAction: |
@@ -161,15 +179,17 @@ data:
           "name":"Open Application",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}"
+            "uri":"{{ $argocdUrl }}/applications/{{ $name }}"
           }]
         },
         {
           "@type":"OpenUri",
           "name":"Open Repository",
           "targets":[{
-            "os":"default",
-            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+            "os":"default"
+            {{if and .repo .repo.RepoURLToHTTPS}}
+            ,"uri":"{{$repoURL | call .repo.RepoURLToHTTPS}}"
+            {{end}}
           }]
         }]
       themeColor: '#FF0000'
@@ -178,25 +198,26 @@ data:
     email:
       subject: Failed to sync application {{ $name }}.
     message: |
-      {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{ $name }} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
-      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{ $name }}?operation=true .
+      {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{ $name }} has failed at {{ $finishedAt }} with the following error: {{ $message }}
+      Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true .
     slack:
       attachments: |
         [{
-          "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
+          "title": "{{ $name }}",
+          "title_link":"{{ $argocdUrl }}/applications/{{ $name }}",
           "color": "#E96D76",
           "fields": [
           {
             "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
+            "value": "{{ $syncStatus }}",
             "short": true
           },
           {
             "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
+            "value": "{{ $repoURL }}",
             "short": true
           }
+          {{if and .app .app.status .app.status.conditions}}
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -206,6 +227,7 @@ data:
             "short": true
           }
           {{end}}
+          {{end}}
           ]
         }]
       groupingKey: ""
@@ -214,16 +236,17 @@ data:
       facts: |
         [{
           "name": "Sync Status",
-          "value": "{{.app.status.sync.status}}"
+          "value": "{{ $syncStatus }}"
         },
         {
           "name": "Failed at",
-          "value": "{{.app.status.operationState.finishedAt}}"
+          "value": "{{ $finishedAt }}"
         },
         {
           "name": "Repository",
-          "value": "{{.app.spec.source.repoURL}}"
+          "value": "{{ $repoURL }}"
         }
+        {{if and .app .app.status .app.status.conditions}}
         {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -232,6 +255,7 @@ data:
             "value": "{{$c.message}}"
           }
         {{end}}
+        {{end}}
         ]
       potentialAction: |-
         [{
@@ -239,15 +263,17 @@ data:
           "name":"Open Operation",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}?operation=true"
+            "uri":"{{ $argocdUrl }}/applications/{{ $name }}?operation=true"
           }]
         },
         {
           "@type":"OpenUri",
           "name":"Open Repository",
           "targets":[{
-            "os":"default",
-            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+            "os":"default"
+            {{if and .repo .repo.RepoURLToHTTPS}}
+            ,"uri":"{{$repoURL | call .repo.RepoURLToHTTPS}}"
+            {{end}}
           }]
         }]
       themeColor: '#FF0000'
@@ -256,25 +282,26 @@ data:
     email:
       subject: Start syncing application {{ $name }}.
     message: |
-      The sync operation of application {{ $name }} has started at {{.app.status.operationState.startedAt}}.
-      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{ $name }}?operation=true .
+      The sync operation of application {{ $name }} has started at {{ $startedAt }}.
+      Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true .
     slack:
       attachments: |
         [{
-          "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
+          "title": "{{ $name }}",
+          "title_link":"{{ $argocdUrl }}/applications/{{ $name }}",
           "color": "#0DADEA",
           "fields": [
           {
             "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
+            "value": "{{ $syncStatus }}",
             "short": true
           },
           {
             "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
+            "value": "{{ $repoURL }}",
             "short": true
           }
+          {{if and .app .app.status .app.status.conditions}}
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -284,6 +311,7 @@ data:
             "short": true
           }
           {{end}}
+          {{end}}
           ]
         }]
       groupingKey: ""
@@ -292,16 +320,17 @@ data:
       facts: |
         [{
           "name": "Sync Status",
-          "value": "{{.app.status.sync.status}}"
+          "value": "{{ $syncStatus }}"
         },
         {
           "name": "Started at",
-          "value": "{{.app.status.operationState.startedAt}}"
+          "value": "{{ $startedAt }}"
         },
         {
           "name": "Repository",
-          "value": "{{.app.spec.source.repoURL}}"
+          "value": "{{ $repoURL }}"
         }
+        {{if and .app .app.status .app.status.conditions}}
         {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -309,6 +338,7 @@ data:
             "name": "{{$c.type}}",
             "value": "{{$c.message}}"
           }
+        {{end}}
         {{end}}
         ]
       potentialAction: |-
@@ -317,15 +347,17 @@ data:
           "name":"Open Operation",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}?operation=true"
+            "uri":"{{ $argocdUrl }}/applications/{{ $name }}?operation=true"
           }]
         },
         {
           "@type":"OpenUri",
           "name":"Open Repository",
           "targets":[{
-            "os":"default",
-            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+            "os":"default"
+            {{if and .repo .repo.RepoURLToHTTPS}}
+            ,"uri":"{{$repoURL | call .repo.RepoURLToHTTPS}}"
+            {{end}}
           }]
         }]
       title: Start syncing application {{ $name }}.
@@ -334,29 +366,32 @@ data:
       subject: Application {{ $name }} sync status is 'Unknown'
     message: |
       {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{ $name }} sync is 'Unknown'.
-      Application details: {{.context.argocdUrl}}/applications/{{ $name }}.
+      Application details: {{ $argocdUrl }}/applications/{{ $name }}.
       {{if ne .serviceType "slack"}}
+      {{if and .app .app.status .app.status.conditions}}
       {{range $c := .app.status.conditions}}
           * {{$c.message}}
+      {{end}}
       {{end}}
       {{end}}
     slack:
       attachments: |
         [{
-          "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
+          "title": "{{ $name }}",
+          "title_link":"{{ $argocdUrl }}/applications/{{ $name }}",
           "color": "#E96D76",
           "fields": [
           {
             "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
+            "value": "{{ $syncStatus }}",
             "short": true
           },
           {
             "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
+            "value": "{{ $repoURL }}",
             "short": true
           }
+          {{if and .app .app.status .app.status.conditions}}
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -366,6 +401,7 @@ data:
             "short": true
           }
           {{end}}
+          {{end}}
           ]
         }]
       groupingKey: ""
@@ -374,12 +410,13 @@ data:
       facts: |
         [{
           "name": "Sync Status",
-          "value": "{{.app.status.sync.status}}"
+          "value": "{{ $syncStatus }}"
         },
         {
           "name": "Repository",
-          "value": "{{.app.spec.source.repoURL}}"
+          "value": "{{ $repoURL }}"
         }
+        {{if and .app .app.status .app.status.conditions}}
         {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -387,6 +424,7 @@ data:
             "name": "{{$c.type}}",
             "value": "{{$c.message}}"
           }
+        {{end}}
         {{end}}
         ]
       potentialAction: |-
@@ -395,15 +433,17 @@ data:
           "name":"Open Application",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}"
+            "uri":"{{ $argocdUrl }}/applications/{{ $name }}"
           }]
         },
         {
           "@type":"OpenUri",
           "name":"Open Repository",
           "targets":[{
-            "os":"default",
-            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+            "os":"default"
+            {{if and .repo .repo.RepoURLToHTTPS}}
+            ,"uri":"{{$repoURL | call .repo.RepoURLToHTTPS}}"
+            {{end}}
           }]
         }]
       title: Application {{ $name }} sync status is 'Unknown'
@@ -411,25 +451,26 @@ data:
     email:
       subject: Application {{ $name }} has been successfully synced.
     message: |
-      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{ $name }} has been successfully synced at {{.app.status.operationState.finishedAt}}.
-      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{ $name }}?operation=true .
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{ $name }} has been successfully synced at {{ $finishedAt }}.
+      Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true .
     slack:
       attachments: |
         [{
-          "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
+          "title": "{{ $name }}",
+          "title_link":"{{ $argocdUrl }}/applications/{{ $name }}",
           "color": "#18be52",
           "fields": [
           {
             "title": "Sync Status",
-            "value": "{{.app.status.sync.status}}",
+            "value": "{{ $syncStatus }}",
             "short": true
           },
           {
             "title": "Repository",
-            "value": "{{.app.spec.source.repoURL}}",
+            "value": "{{ $repoURL }}",
             "short": true
           }
+          {{if and .app .app.status .app.status.conditions}}
           {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -439,6 +480,7 @@ data:
             "short": true
           }
           {{end}}
+          {{end}}
           ]
         }]
       groupingKey: ""
@@ -447,16 +489,17 @@ data:
       facts: |
         [{
           "name": "Sync Status",
-          "value": "{{.app.status.sync.status}}"
+          "value": "{{ $syncStatus }}"
         },
         {
           "name": "Synced at",
-          "value": "{{.app.status.operationState.finishedAt}}"
+          "value": "{{ $finishedAt }}"
         },
         {
           "name": "Repository",
-          "value": "{{.app.spec.source.repoURL}}"
+          "value": "{{ $repoURL }}"
         }
+        {{if and .app .app.status .app.status.conditions}}
         {{range $index, $c := .app.status.conditions}}
           {{if not $index}},{{end}}
           {{if $index}},{{end}}
@@ -465,6 +508,7 @@ data:
             "value": "{{$c.message}}"
           }
         {{end}}
+        {{end}}
         ]
       potentialAction: |-
         [{
@@ -472,15 +516,17 @@ data:
           "name":"Operation Details",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}?operation=true"
+            "uri":"{{ $argocdUrl }}/applications/{{ $name }}?operation=true"
           }]
         },
         {
           "@type":"OpenUri",
           "name":"Open Repository",
           "targets":[{
-            "os":"default",
-            "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
+            "os":"default"
+            {{if and .repo .repo.RepoURLToHTTPS}}
+            ,"uri":"{{$repoURL | call .repo.RepoURLToHTTPS}}"
+            {{end}}
           }]
         }]
       themeColor: '#000080'
