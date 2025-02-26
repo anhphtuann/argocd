@@ -3,30 +3,31 @@ kind: ConfigMap
 metadata:
   name: argocd-notifications-cm
 data:
+  {{- $name := "{{ .app.metadata.name }}" }}
   service.telegram: |
     token: $telegram-token
   template.app-created: |
     email:
-      subject: Application {{.app.metadata.name}} has been created.
-    message: Application {{.app.metadata.name}} has been created.
+      subject: Application {{ $name }} has been created.
+    message: Application {{ $name }} has been created.
     teams:
-      title: Application {{.app.metadata.name}} has been created.
+      title: Application {{ $name }} has been created.
   template.app-deleted: |
     email:
-      subject: Application {{.app.metadata.name}} has been deleted.
-    message: Application {{.app.metadata.name}} has been deleted.
+      subject: Application {{ $name }} has been deleted.
+    message: Application {{ $name }} has been deleted.
     teams:
-      title: Application {{.app.metadata.name}} has been deleted.
+      title: Application {{ $name }} has been deleted.
   template.app-deployed: |
     email:
-      subject: New version of an application {{.app.metadata.name}} is up and running.
+      subject: New version of an application {{ $name }} is up and running.
     message: |
-      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} is now running new version of deployments manifests.
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{ $name }} is now running new version of deployments manifests.
     slack:
       attachments: |
         [{
           "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
           "color": "#18be52",
           "fields": [
           {
@@ -86,7 +87,7 @@ data:
           "name":"Operation Application",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}"
           }]
         },
         {
@@ -98,18 +99,18 @@ data:
           }]
         }]
       themeColor: '#000080'
-      title: New version of an application {{.app.metadata.name}} is up and running.
+      title: New version of an application {{ $name }} is up and running.
   template.app-health-degraded: |
     email:
-      subject: Application {{.app.metadata.name}} has degraded.
+      subject: Application {{ $name }} has degraded.
     message: |
-      {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} has degraded.
-      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+      {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{ $name }} has degraded.
+      Application details: {{.context.argocdUrl}}/applications/{{ $name }}.
     slack:
       attachments: |
         [{
           "title": "{{ .app.metadata.name}}",
-          "title_link": "{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "title_link": "{{.context.argocdUrl}}/applications/{{ $name }}",
           "color": "#f4c030",
           "fields": [
           {
@@ -160,7 +161,7 @@ data:
           "name":"Open Application",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}"
           }]
         },
         {
@@ -172,18 +173,18 @@ data:
           }]
         }]
       themeColor: '#FF0000'
-      title: Application {{.app.metadata.name}} has degraded.
+      title: Application {{ $name }} has degraded.
   template.app-sync-failed: |
     email:
-      subject: Failed to sync application {{.app.metadata.name}}.
+      subject: Failed to sync application {{ $name }}.
     message: |
-      {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{.app.metadata.name}} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
-      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+      {{if eq .serviceType "slack"}}:exclamation:{{end}}  The sync operation of application {{ $name }} has failed at {{.app.status.operationState.finishedAt}} with the following error: {{.app.status.operationState.message}}
+      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{ $name }}?operation=true .
     slack:
       attachments: |
         [{
           "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
           "color": "#E96D76",
           "fields": [
           {
@@ -238,7 +239,7 @@ data:
           "name":"Open Operation",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true"
+            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}?operation=true"
           }]
         },
         {
@@ -250,18 +251,18 @@ data:
           }]
         }]
       themeColor: '#FF0000'
-      title: Failed to sync application {{.app.metadata.name}}.
+      title: Failed to sync application {{ $name }}.
   template.app-sync-running: |
     email:
-      subject: Start syncing application {{.app.metadata.name}}.
+      subject: Start syncing application {{ $name }}.
     message: |
-      The sync operation of application {{.app.metadata.name}} has started at {{.app.status.operationState.startedAt}}.
-      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+      The sync operation of application {{ $name }} has started at {{.app.status.operationState.startedAt}}.
+      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{ $name }}?operation=true .
     slack:
       attachments: |
         [{
           "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
           "color": "#0DADEA",
           "fields": [
           {
@@ -316,7 +317,7 @@ data:
           "name":"Open Operation",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true"
+            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}?operation=true"
           }]
         },
         {
@@ -327,13 +328,13 @@ data:
             "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
           }]
         }]
-      title: Start syncing application {{.app.metadata.name}}.
+      title: Start syncing application {{ $name }}.
   template.app-sync-status-unknown: |
     email:
-      subject: Application {{.app.metadata.name}} sync status is 'Unknown'
+      subject: Application {{ $name }} sync status is 'Unknown'
     message: |
-      {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{.app.metadata.name}} sync is 'Unknown'.
-      Application details: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}.
+      {{if eq .serviceType "slack"}}:exclamation:{{end}} Application {{ $name }} sync is 'Unknown'.
+      Application details: {{.context.argocdUrl}}/applications/{{ $name }}.
       {{if ne .serviceType "slack"}}
       {{range $c := .app.status.conditions}}
           * {{$c.message}}
@@ -343,7 +344,7 @@ data:
       attachments: |
         [{
           "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
           "color": "#E96D76",
           "fields": [
           {
@@ -394,7 +395,7 @@ data:
           "name":"Open Application",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}"
+            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}"
           }]
         },
         {
@@ -405,18 +406,18 @@ data:
             "uri":"{{.app.spec.source.repoURL | call .repo.RepoURLToHTTPS}}"
           }]
         }]
-      title: Application {{.app.metadata.name}} sync status is 'Unknown'
+      title: Application {{ $name }} sync status is 'Unknown'
   template.app-sync-succeeded: |
     email:
-      subject: Application {{.app.metadata.name}} has been successfully synced.
+      subject: Application {{ $name }} has been successfully synced.
     message: |
-      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{.app.metadata.name}} has been successfully synced at {{.app.status.operationState.finishedAt}}.
-      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true .
+      {{if eq .serviceType "slack"}}:white_check_mark:{{end}} Application {{ $name }} has been successfully synced at {{.app.status.operationState.finishedAt}}.
+      Sync operation details are available at: {{.context.argocdUrl}}/applications/{{ $name }}?operation=true .
     slack:
       attachments: |
         [{
           "title": "{{ .app.metadata.name}}",
-          "title_link":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}",
+          "title_link":"{{.context.argocdUrl}}/applications/{{ $name }}",
           "color": "#18be52",
           "fields": [
           {
@@ -471,7 +472,7 @@ data:
           "name":"Operation Details",
           "targets":[{
             "os":"default",
-            "uri":"{{.context.argocdUrl}}/applications/{{.app.metadata.name}}?operation=true"
+            "uri":"{{.context.argocdUrl}}/applications/{{ $name }}?operation=true"
           }]
         },
         {
@@ -483,7 +484,7 @@ data:
           }]
         }]
       themeColor: '#000080'
-      title: Application {{.app.metadata.name}} has been successfully synced
+      title: Application {{ $name }} has been successfully synced
   trigger.on-created: |
     - description: Application is created.
       oncePer: app.metadata.name
