@@ -49,7 +49,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "Application {{ $name }} is now running new version of deployments manifests.",
+            "text": "Application {{ $name }} is now running new version of deployments manifests.\nApplication details: {{ $argocdUrl }}/applications/{{ $name }}.\nSync Status: {{ $syncStatus }}.\nRepository: {{ $repoURL }}.\nRevision: {{ $revision }}.{{if and .app .app.status .app.status.conditions}}{{range .app.status.conditions}}\n{{$c.type}}: {{$c.message}}.{{end}}{{end}}",
             "message_thread_id": 2
           }
   template.app-health-degraded: |
@@ -59,7 +59,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "Application {{ $name }} has degraded. Application details: {{ $argocdUrl }}/applications/{{ $name }}.",
+            "text": "Application {{ $name }} has degraded.\nApplication details: {{ $argocdUrl }}/applications/{{ $name }}.\nHealth Status: {{ $$healthStatus }}.\nRepository: {{ $repoURL }}.{{if and .app .app.status .app.status.conditions}}{{range .app.status.conditions}}\n{{$c.type}}: {{$c.message}}.{{end}}{{end}}",
             "message_thread_id": 2
           }
   template.app-sync-failed: |
@@ -69,7 +69,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "The sync operation of application {{ $name }} has failed at {{ $finishedAt }} with the following error: {{ $message }}. Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.",
+            "text": "The sync operation of application {{ $name }} has failed at {{ $finishedAt }} with the following error: {{ $message }}.\nSync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.\nSync Status: {{ $syncStatus }}.\nRepository: {{ $repoURL }}.{{if and .app .app.status .app.status.conditions}}{{range .app.status.conditions}}\n{{$c.type}}: {{$c.message}}.{{end}}{{end}}",
             "message_thread_id": 2
           }
   template.app-sync-running: |
@@ -79,7 +79,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "The sync operation of application {{ $name }} has started at {{ $startedAt }}. Sync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.",
+            "text": "The sync operation of application {{ $name }} has started at {{ $startedAt }}.\nSync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.\nSync Status: {{ $syncStatus }}.\nRepository: {{ $repoURL }}.{{if and .app .app.status .app.status.conditions}}{{range .app.status.conditions}}\n{{$c.type}}: {{$c.message}}.{{end}}{{end}}",
             "message_thread_id": 2
           }
   template.app-sync-status-unknown: |
@@ -89,7 +89,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "Application {{ $name }} sync is 'Unknown'. Application details: {{ $argocdUrl }}/applications/{{ $name }}.",
+            "text": "Application {{ $name }} sync is 'Unknown'.\nApplication details: {{ $argocdUrl }}/applications/{{ $name }}.\nSync Status: {{ $syncStatus }}.\nRepository: {{ $repoURL }}.{{if and .app .app.status .app.status.conditions}}{{range .app.status.conditions}}\n{{$c.type}}: {{$c.message}}.{{end}}{{end}}",
             "message_thread_id": 2
           }
   template.app-sync-succeeded: |
@@ -99,7 +99,7 @@ data:
         body: |
           {
             "chat_id": -1002251325616,
-            "text": "Application {{ $name }} has been successfully synced at {{ $finishedAt }}.\nSync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true",
+            "text": "Application {{ $name }} has been successfully synced at {{ $finishedAt }}.\nSync operation details are available at: {{ $argocdUrl }}/applications/{{ $name }}?operation=true.\nSync Status: {{ $syncStatus }}.\nRepository: {{ $repoURL }}.{{if and .app .app.status .app.status.conditions}}{{range .app.status.conditions}}\n{{$c.type}}: {{$c.message}}.{{end}}{{end}}",
             "message_thread_id": 2
           }
 

@@ -4,6 +4,13 @@ metadata:
   name: kustomize-guestbook
   namespace: argocd
   annotations:
+    notifications.argoproj.io/subscribe.on-created.telegram_webhook: ""
+    notifications.argoproj.io/subscribe.on-deleted.telegram_webhook: ""
+    notifications.argoproj.io/subscribe.on-deployed.telegram_webhook: ""
+    notifications.argoproj.io/subscribe.on-health-degraded.telegram_webhook: ""
+    notifications.argoproj.io/subscribe.on-sync-failed.telegram_webhook: ""
+    notifications.argoproj.io/subscribe.on-sync-running.telegram_webhook: ""
+    notifications.argoproj.io/subscribe.on-sync-status-unknown.telegram_webhook: ""
     notifications.argoproj.io/subscribe.on-sync-succeeded.telegram_webhook: ""
   finalizers:
   - resources-finalizer.argocd.argoproj.io
