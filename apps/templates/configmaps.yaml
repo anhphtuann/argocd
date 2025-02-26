@@ -4,4 +4,29 @@ metadata:
   name: argocd-notifications-cm
 data:
   service.telegram: |
-    token: 7674095993:AAFCiYoqNws8cx0MbGvBIHTDBJnIov18zwA
+    botToken: $telegram-secret/botToken
+    chatId: "-1002251325616" # Replace with your Telegram chat ID
+    topicId: "2" # Replace with your Telegram topic ID
+  template.app-sync-succeeded: |
+    template: |
+      Application '{{.app.metadata.name}}' sync succeeded!
+      Project: {{.app.spec.project}}
+      Revision: {{.app.status.sync.revision}}
+    telegram:
+      message: '{{.app.metadata.name}} sync succeeded!\nProject: {{.app.spec.project}}\nRevision: {{.app.status.sync.revision}}'
+  trigger.on-sync-succeeded: |
+    - send: [telegram]
+      when: app.status.sync.status == "Synced"
+      template: app-sync-succeeded
+  template.app-sync-failed: |
+    template: |
+      Application '{{.app.metadata.name}}' sync failed!
+      Project: {{.app.spec.project}}
+      Revision: {{.app.status.sync.revision}}
+      Error: {{.app.status.sync.comparedTo.error}}
+    telegram:
+      message: '{{.app.metadata.name}} sync failed!\nProject: {{.app.spec.project}}\nRevision: {{.app.status.sync.revision}}\nError: {{.app.status.sync.comparedTo.error}}'
+  trigger.on-sync-failed: |
+    - send: [telegram]
+      when: app.status.sync.status == "OutOfSync"
+      template: app-sync-failed
